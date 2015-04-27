@@ -1,7 +1,7 @@
-##cmc-api specification
+#cmc-api specification
 
 
-### Features
+## Features
 
 ######Required:
 
