@@ -36,7 +36,7 @@
 |Delete certiticate | DELETE /certificates/**{id}**  |
 |Search certificate | GET /certificates?search=**{criterias}** |
 
-
+<br/>
 ######Optional
 |Activity|Noun/Verb Mapping |
 |:------------ | ------------- |
