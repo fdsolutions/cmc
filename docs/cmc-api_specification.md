@@ -20,10 +20,10 @@
 
 
 <br/>
-### Resources
+## Resources
 
 
-#####Certificate resource
+####Certificate resource
 
 ######Required
 |Activity|Noun/Verb Mapping |
