@@ -34,7 +34,7 @@
 |Create certiticate | POST /certificates  |
 |Edit certiticate | PUT /certificates/**{id}**  |
 |Delete certiticate | DELETE /certificates/**{id}**  |
-|Search certificate | GET /certificates?search=**{criterias}** |
+|Search certificate by common name | GET /certificates?cn=**{common_name}** |
 
 <br/>
 ######Optional
