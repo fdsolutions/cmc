@@ -47,3 +47,33 @@
 |Sign/Self-sign certificate | POST /certificates/**{id}**/sign?self=[true|false]|
 |Generate certificate request | POST /certificates/**{id}**/request|
 
+
+<br/>
+## Requirements 
+
+####Design constraints
+
+######Database
+All certificates data/metadata will be stored in a SQLite3 database. All records will be stored in a file named **cmc.db**
+
+<br/>
+####Interface to external services
+
+######Authentification
+The System authenticate client via a Central Authentication Service (CAS).
+
+<br/>
+####Implementation
+
+######Language
+The language used to build the API will be the **Go programming language**. Go application are too easy to deploy. In fact, the deployment process is as simple as copying a binary onto the server.
+
+######Third-party libraries or components
+
+**[crypto](https://golang.org/pkg/crypto/)** : A package that provides cryptograpic tools and helps to manage everything certificates related. 
+
+**[martini](http://martini.codegangsta.io/)** : A web framework wirtten in Go. It provides a way to create great and fast API.
+
+**[golang-cas-client](https://github.com/lucasuyezu/golang-cas-client)** : A experimental go client for CAS.
+
+**[gorm](https://github.com/jinzhu/gorm)** : An ORM library for Golang. It will be used to interact with the database.
