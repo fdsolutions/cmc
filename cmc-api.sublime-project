@@ -1,0 +1,9 @@
+{
+    "settings": {
+        "GoSublime": {
+            "env": {
+                 "GOPATH": "D:\\Utilisateurs\\A555983\\bridge-dev-ws\\playground\\golang"
+            }
+        }
+    }
+}
