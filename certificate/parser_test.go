@@ -1,8 +1,12 @@
 package certificate_test
 
 import (
+	"fmt"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	. "github.com/fdsolutions/cmc-api/certificate"
 )
 
 const (
@@ -141,14 +145,21 @@ yNf+FW/sTf+YRtROHUFJgtMU0Hwx3LWxow3p0siTxb0Dlrg2AXw+mVQQIsJ+rAF2
 )
 
 var _ = Describe("Parser", func() {
-
 	Describe(".Parse", func() {
-		Context("With an empty certificate content", func() {
-			It("Must return an ", func() {
-				certs := Parse(emptyPEMcert)
+		Context("With no PEM certificate content passed", func() {
+			It("should return an error.", func() {
+				_, err := Parse(emptyPEMcert)
+				fmt.Printf("[DEBUG] : %#v", err)
+				Expect(err).To(HaveOccurred())
+			})
+		})
 
+		Context("With only certificate passed", func() {
+			It("should return an error.", func() {
+				certs, err := Parse(singlePEMcert)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(certs).To(HaveLen(1))
 			})
 		})
 	})
-
 })
