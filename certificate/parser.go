@@ -3,32 +3,30 @@ package certificate
 import (
 	"crypto/x509"
 	"encoding/pem"
-	"errors"
+	"fmt"
 )
 
-func Parse(PEMdata string) (certs []*x509.Certificate, err error) {
-	var blocks []byte
+// Parse extract all certificates from a content that list all PEM data string
+func Parse(PEMdata string) (certs []*x509.Certificate, e error) {
+	_, blocks, _ := decodePEMdataInBlocks(0, []byte{}, []byte(PEMdata))
+	certs, _ = x509.ParseCertificates(blocks)
+	return
+}
 
-	rest := []byte(PEMdata)
-	for {
-		var block *pem.Block
-		block, rest = pem.Decode(rest)
+func decodePEMdataInBlocks(idx int, blocks, rest []byte) (nextIdx int, accBlocks, next []byte) {
+	var block *pem.Block
 
-		if block == nil {
-			err = errors.New("ParseError: Invalid PEM content.")
-			break
-		}
-		blocks = append(blocks, block.Bytes...)
-		if len(rest) == 0 {
-			break
-		}
+	if len(rest) == 0 { // No more PEM data to decode
+		return idx, blocks, nil
 	}
 
-	certs, err = x509.ParseCertificates(blocks)
-	if err != nil {
-		err = errors.New("ParseError: Unable to get certificate form PEM Blocks.")
+	if block, next = pem.Decode(rest); next == nil {
+		fmt.Printf("Error: Invalid PEM content at position %v", idx)
 		return
 	}
 
-	return
+	accBlocks = append(blocks, block.Bytes...)
+	nextIdx = idx + 1
+
+	return decodePEMdataInBlocks(nextIdx, accBlocks, next)
 }
