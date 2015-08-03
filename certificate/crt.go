@@ -1,0 +1,21 @@
+package certificate
+
+import (
+	"crypto/x509"
+)
+
+type detailer interface {
+	GetRawPEM() string
+	GetVersion() string
+}
+
+// Crt wraps all information relative to certificate
+type Crt struct {
+	*x509.Certificate
+	//detailer
+}
+
+// FromRawPEM returns all crertificates referenced in the PEM data string
+func FromRawPEM(data string) []*Crt {
+	return nil
+}

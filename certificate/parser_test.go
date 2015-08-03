@@ -192,7 +192,7 @@ var _ = Describe("Parser", func() {
 		})
 
 		Context("With one certificate well formatted PEM data certificate", func() {
-			XIt("should return the certificate ignoring the other parts of the PEM data", func() {
+			It("should return the certificate ignoring the other parts of the PEM data", func() {
 				certs, _ := Parse(aPEMcertWithSomeWrongCert)
 				Expect(certs).To(HaveLen(1))
 			})
