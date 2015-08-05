@@ -17,7 +17,8 @@ func Parse(PEMdata string) (certs []*x509.Certificate, e error) {
 
 func decodePEMdataInBlocks(idx int, blocks, rest []byte, errRefs map[int]error) (nextIdx int, accBlocks, next []byte) {
 	var block *pem.Block
-	// preset return values
+	// Keep the state if for some reasons there is nothing to decode
+	// or the decoding failed for one block of content.
 	nextIdx, accBlocks, next = idx, blocks, nil
 
 	if len(rest) == 0 { // No more PEM data to decode
@@ -28,7 +29,6 @@ func decodePEMdataInBlocks(idx int, blocks, rest []byte, errRefs map[int]error) 
 		errRefs[idx] = fmt.Errorf("Error: Invalid PEM content at position %v", idx)
 		return
 	}
-
 	accBlocks = append(blocks, block.Bytes...)
 	nextIdx = idx + 1
 
