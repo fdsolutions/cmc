@@ -12,7 +12,6 @@ type detailer interface {
 // Crt wraps all information relative to certificate
 type Crt struct {
 	*x509.Certificate
-	//detailer
 }
 
 // FromRawPEM returns all crertificates referenced in the PEM data string
