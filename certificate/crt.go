@@ -2,6 +2,7 @@ package certificate
 
 import (
 	"crypto/x509"
+	"fmt"
 )
 
 type detailer interface {
