@@ -24,12 +24,23 @@ type CER struct {
 	x509.Certificate
 }
 
+func (cer CER) GetInfos() (ci CertInfo, err error) {
+	info := NewCertInfo()
+
+	version := cer.Certificate.Version
+	fmt.Printf("version : %v", version)
+	info.SetVersion(version)
+
+	ci = *info
+	return
+}
+
 // FromRawPEM returns all crertificates referenced in the PEM data string
-func FromRawPEM(data string) (certs []*CER, errRefs ErrorRef) {
+func FromRawPEM(data string) (certs []CER, errRefs ErrorRef) {
 	x509certs, errRefs := parse(data)
-	certs = make([]*CER, len(x509certs))
+	certs = make([]CER, len(x509certs))
 	for i, c := range x509certs {
-		certs[i] = &CER{*c}
+		certs[i] = CER{*c}
 	}
 	return
 }
