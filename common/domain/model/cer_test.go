@@ -12,6 +12,7 @@ var (
 	certs   []CER
 	errRefs ErrorRef
 	cer     CER
+	info    CertInfo
 )
 
 var _ = Describe("Cer", func() {
@@ -29,9 +30,14 @@ var _ = Describe("Cer", func() {
 	})
 	Describe("#GetInfos", func() {
 		Context("With a valid CER", func() {
-			It("returns the version number", func() {
-				info, _ := cer.GetInfos()
+			BeforeEach(func() {
+				info, _ = cer.GetInfos()
+			})
+			It("contains the version number", func() {
 				Expect(info.GetVersion()).To(Equal(3))
+			})
+			It("contains the serial number", func() {
+				Expect(info.GetSerialNumber()).To(Equal("1404354960355712309"))
 			})
 		})
 	})

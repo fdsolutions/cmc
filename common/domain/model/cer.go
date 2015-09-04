@@ -27,9 +27,11 @@ type CER struct {
 func (cer CER) GetInfos() (ci CertInfo, err error) {
 	info := NewCertInfo()
 
-	version := cer.Certificate.Version
-	fmt.Printf("version : %v", version)
-	info.SetVersion(version)
+	v := cer.Certificate.Version
+	info.SetVersion(v)
+
+	sn := cer.Certificate.SerialNumber
+	info.SetSerialNumber(sn)
 
 	ci = *info
 	return
