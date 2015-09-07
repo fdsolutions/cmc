@@ -39,7 +39,7 @@ var _ = Describe("Cer", func() {
 			It("contains the serial number", func() {
 				Expect(info.GetSerialNumber()).To(Equal("1404354960355712309"))
 			})
-			It("contains the signature infos", func() {
+			It("contains signature and signature algorithm", func() {
 				expectedSig := `1f a4 58 1f 11 dd 70 6a 4c a4 51 37 a3 10 e8 16 73 fe 82 db ` +
 					`81 08 76 a7 db 21 36 19 16 c9 d8 2c 3c 2f 0d 0c 9a e2 aa 1e 57 fd 45 27 98 7d dd ` +
 					`c1 5d e2 a4 8f 5a 8e e9 35 4a c0 28 7e d0 77 59 93 6f 37 4d 96 72 ce 61 0e c9 c9 ` +
@@ -54,6 +54,20 @@ var _ = Describe("Cer", func() {
 				expectedSigAlg := `SHA1 With RSA`
 				Expect(info.GetSignature()).To(Equal(expectedSig))
 				Expect(info.GetSignatureAlgorithm()).To(Equal(expectedSigAlg))
+			})
+			It("contains Issuer info", func() {
+				expectedInfo := Info{
+					"issuer": map[string]string{
+						"state":             "",
+						"locality":          "",
+						"organization":      "Google Inc",
+						"organization unit": "",
+						"common name":       "Google Internet Authority G2",
+						"street address":    "",
+					},
+				}
+
+				Expect(info.GetIssuerInfo()).To(Equal(expectedInfo))
 			})
 		})
 	})

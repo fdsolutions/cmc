@@ -39,6 +39,9 @@ func (cer CER) GetInfos() (ci CertInfo, err error) {
 	sa := cer.Certificate.SignatureAlgorithm
 	info.SetSignatureAlgorithm(sa)
 
+	u := cer.Certificate.Issuer
+	info.SetIssuer(u)
+
 	ci = info
 	return
 }

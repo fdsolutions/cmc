@@ -2,6 +2,7 @@ package model
 
 import (
 	"crypto/x509"
+	"crypto/x509/pkix"
 	"fmt"
 	"math/big"
 	"strings"
@@ -17,15 +18,15 @@ type certInfoGetter interface {
 	GetSignature() string
 	GetSignatureAlgorithm() string
 	//Issuer info
-	/*	GetIssuerInfo() Info
-		GetIssuerCountry() string
-		GetIssuerState() string
-		GetIssuerLocality() string
-		GetIssuerOrganization() string
-		GetIssuerOrganizationUnit() string
-		GetIssuerCommonName() string
-		GetIssuerEmailAdress() string
-		GetValidity()
+	GetIssuerInfo() Info
+	GetIssuerCountry() string
+	GetIssuerState() string
+	GetIssuerLocality() string
+	GetIssuerOrganization() string
+	GetIssuerOrganizationUnit() string
+	GetIssuerCommonName() string
+	GetIssuerStreetAddress() string
+	/*	GetValidity()
 		GetValidityNotBefore() string
 		GetValidityNotAfter() string
 		// subject info
@@ -54,15 +55,16 @@ type certInfoSetter interface {
 	SetSignature([]byte)
 	SetSignatureAlgorithm(x509.SignatureAlgorithm)
 	//Issuer info
-	/*	SetIssuerCountry(string)
-		SetIssuerState(string)
-		SetIssuerLocality(string)
-		SetIssuerOrganization(string)
-		SetIssuerOrganizationUnit(string)
-		SetIssuerCommonName(string)
-		SetIssuerEmailAdress(string)
-		//validity
-		SetValidityNotBefore(string)
+	SetIssuer(pkix.Name)
+	setIssuerCountry([]string)
+	setIssuerState([]string)
+	setIssuerLocality([]string)
+	setIssuerOrganization([]string)
+	setIssuerOrganizationUnit([]string)
+	setIssuerCommonName(string)
+	setIssuerStreetAddress([]string)
+	//validity
+	/*	SetValidityNotBefore(string)
 		SetValidityNotAfter(string)
 		// subject info
 		SetSubjectCountry(string)
@@ -82,6 +84,8 @@ type certInfoSetter interface {
 }
 
 const (
+	delim string = ", "
+
 	firstField int = iota
 	version
 	serialNumber
@@ -95,7 +99,7 @@ const (
 	issuerOrganization
 	issuerOrganizationUnit
 	issuerCommonName
-	issuerEmailAdress
+	issuerStreetAddress
 
 	validity
 	validityNotBefore
@@ -134,7 +138,7 @@ var certFieldNames = [...]string{
 	issuerOrganization:     "organization",
 	issuerOrganizationUnit: "organization unit",
 	issuerCommonName:       "common name",
-	issuerEmailAdress:      "CA/email address",
+	issuerStreetAddress:    "street address",
 
 	validity:          "validity",
 	validityNotBefore: "Valid from",
@@ -194,7 +198,7 @@ type certInfo struct {
 	issuerOrganization     string
 	issuerOrganizationUnit string
 	issuerCommonName       string
-	issuerEmailAdress      string
+	issuerStreetAddress    string
 
 	// validity
 	validityNotBefore string
@@ -254,4 +258,75 @@ func (info *certInfo) SetSignatureAlgorithm(sa x509.SignatureAlgorithm) {
 
 func (info *certInfo) GetSignatureAlgorithm() string {
 	return info.signatureAlgorithm
+}
+
+func (info *certInfo) GetIssuerInfo() Info {
+	return Info{
+		certFieldNames[issuer]: map[string]string{
+			certFieldNames[issuerState]:            info.issuerState,
+			certFieldNames[issuerLocality]:         info.issuerLocality,
+			certFieldNames[issuerOrganization]:     info.issuerOrganization,
+			certFieldNames[issuerOrganizationUnit]: info.issuerOrganizationUnit,
+			certFieldNames[issuerCommonName]:       info.issuerCommonName,
+			certFieldNames[issuerStreetAddress]:    info.issuerStreetAddress,
+		},
+	}
+}
+func (info *certInfo) SetIssuer(n pkix.Name) {
+	info.setIssuerCountry(n.Country)
+	info.setIssuerState(n.Province)
+	info.setIssuerLocality(n.Locality)
+	info.setIssuerOrganization(n.Organization)
+	info.setIssuerOrganizationUnit(n.OrganizationalUnit)
+	info.setIssuerCommonName(n.CommonName)
+	info.setIssuerStreetAddress(n.StreetAddress)
+}
+
+func (info *certInfo) GetIssuerCountry() string {
+	return ""
+}
+func (info *certInfo) setIssuerCountry(c []string) {
+	info.issuerCountry = strings.Join(c, delim)
+}
+
+func (info *certInfo) GetIssuerState() string {
+	return ""
+}
+func (info *certInfo) setIssuerState(s []string) {
+	info.issuerState = strings.Join(s, delim)
+}
+
+func (info *certInfo) GetIssuerLocality() string {
+	return ""
+}
+func (info *certInfo) setIssuerLocality(l []string) {
+	info.issuerLocality = strings.Join(l, delim)
+}
+
+func (info *certInfo) GetIssuerOrganization() string {
+	return ""
+}
+func (info *certInfo) setIssuerOrganization(o []string) {
+	info.issuerOrganization = strings.Join(o, delim)
+}
+
+func (info *certInfo) GetIssuerOrganizationUnit() string {
+	return ""
+}
+func (info *certInfo) setIssuerOrganizationUnit(ou []string) {
+	info.issuerOrganizationUnit = strings.Join(ou, delim)
+}
+
+func (info *certInfo) GetIssuerCommonName() string {
+	return ""
+}
+func (info *certInfo) setIssuerCommonName(cn string) {
+	info.issuerCommonName = cn
+}
+
+func (info *certInfo) GetIssuerStreetAddress() string {
+	return ""
+}
+func (info *certInfo) setIssuerStreetAddress(sa []string) {
+	info.issuerStreetAddress = strings.Join(sa, delim)
 }
