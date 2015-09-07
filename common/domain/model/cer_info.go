@@ -1,8 +1,10 @@
 package model
 
 import (
+	"crypto/x509"
 	"fmt"
 	"math/big"
+	"strings"
 )
 
 // Info holds name and value of a single field
@@ -12,10 +14,10 @@ type certInfoGetter interface {
 	GetVersion() int
 	GetSerialNumber() string
 	//signature
-	/*	GetSignature() string
-		GetSignatureAlgorithm() string
-		//Issuer info
-		GetIssuerInfo() Info
+	GetSignature() string
+	GetSignatureAlgorithm() string
+	//Issuer info
+	/*	GetIssuerInfo() Info
 		GetIssuerCountry() string
 		GetIssuerState() string
 		GetIssuerLocality() string
@@ -49,10 +51,10 @@ type certInfoSetter interface {
 	SetVersion(int)
 	SetSerialNumber(*big.Int)
 	//signature
-	/*	SetSignature(string)
-		SetSignatureAlgorithm(string)
-		//Issuer info
-		SetIssuerCountry(string)
+	SetSignature([]byte)
+	SetSignatureAlgorithm(x509.SignatureAlgorithm)
+	//Issuer info
+	/*	SetIssuerCountry(string)
 		SetIssuerState(string)
 		SetIssuerLocality(string)
 		SetIssuerOrganization(string)
@@ -157,6 +159,22 @@ var certFieldNames = [...]string{
 	extensionIssuerAltNames:        "Subject Alternative Name (SAN)",
 }
 
+var signatureAlgorithmNames = [...]string{
+	x509.UnknownSignatureAlgorithm: "Unknown Signature Algorithm",
+	x509.MD2WithRSA:                "MD2 With RSA",
+	x509.MD5WithRSA:                "MD5 With RSA",
+	x509.SHA1WithRSA:               "SHA1 With RSA",
+	x509.SHA256WithRSA:             "SHA256 With RSA",
+	x509.SHA384WithRSA:             "SHA384 With RSA",
+	x509.SHA512WithRSA:             "SHA512 With RSA",
+	x509.DSAWithSHA1:               "DSA With SHA1",
+	x509.DSAWithSHA256:             "DSA With SHA256",
+	x509.ECDSAWithSHA1:             "ECDS AWith SHA1",
+	x509.ECDSAWithSHA256:           "ECDSA With SHA256",
+	x509.ECDSAWithSHA384:           "ECDSA With SHA384",
+	x509.ECDSAWithSHA512:           "ECDSA With SHA512",
+}
+
 type CertInfo interface {
 	certInfoGetter
 	certInfoSetter
@@ -166,8 +184,8 @@ type certInfo struct {
 	raw                []byte
 	version            int
 	serialNumber       string
+	signature          string
 	signatureAlgorithm string
-	Signature          string
 
 	// issuer
 	issuerCountry          string
@@ -219,4 +237,21 @@ func (info *certInfo) SetSerialNumber(sn *big.Int) {
 
 func (info *certInfo) GetSerialNumber() string {
 	return info.serialNumber
+}
+
+func (info *certInfo) SetSignature(s []byte) {
+	//info.signature = hex.EncodeToString(s)
+	info.signature = strings.TrimSpace(fmt.Sprintf("% x\n", s))
+}
+
+func (info *certInfo) GetSignature() string {
+	return info.signature
+}
+
+func (info *certInfo) SetSignatureAlgorithm(sa x509.SignatureAlgorithm) {
+	info.signatureAlgorithm = signatureAlgorithmNames[sa]
+}
+
+func (info *certInfo) GetSignatureAlgorithm() string {
+	return info.signatureAlgorithm
 }

@@ -33,6 +33,12 @@ func (cer CER) GetInfos() (ci CertInfo, err error) {
 	sn := cer.Certificate.SerialNumber
 	info.SetSerialNumber(sn)
 
+	s := cer.Certificate.Signature
+	info.SetSignature(s)
+
+	sa := cer.Certificate.SignatureAlgorithm
+	info.SetSignatureAlgorithm(sa)
+
 	ci = info
 	return
 }
