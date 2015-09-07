@@ -33,7 +33,7 @@ func (cer CER) GetInfos() (ci CertInfo, err error) {
 	sn := cer.Certificate.SerialNumber
 	info.SetSerialNumber(sn)
 
-	ci = *info
+	ci = info
 	return
 }
 

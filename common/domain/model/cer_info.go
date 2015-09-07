@@ -157,7 +157,12 @@ var certFieldNames = [...]string{
 	extensionIssuerAltNames:        "Subject Alternative Name (SAN)",
 }
 
-type CertInfo struct {
+type CertInfo interface {
+	certInfoGetter
+	certInfoSetter
+}
+
+type certInfo struct {
 	raw                []byte
 	version            int
 	serialNumber       string
@@ -194,27 +199,24 @@ type CertInfo struct {
 	// extensions
 	extensionAutorityKeyIdentifier string
 	extensionIssuerAltNames        string
-
-	certInfoGetter
-	certInfoSetter
 }
 
-func NewCertInfo() *CertInfo {
-	return &CertInfo{}
+func NewCertInfo() CertInfo {
+	return &certInfo{}
 }
 
-func (info *CertInfo) SetVersion(v int) {
+func (info *certInfo) SetVersion(v int) {
 	info.version = v
 }
 
-func (info *CertInfo) GetVersion() int {
+func (info *certInfo) GetVersion() int {
 	return info.version
 }
 
-func (info *CertInfo) SetSerialNumber(sn *big.Int) {
+func (info *certInfo) SetSerialNumber(sn *big.Int) {
 	info.serialNumber = fmt.Sprintf("%s", sn)
 }
 
-func (info *CertInfo) GetSerialNumber() string {
+func (info *certInfo) GetSerialNumber() string {
 	return info.serialNumber
 }
