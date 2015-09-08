@@ -27,6 +27,8 @@ type CER struct {
 func (cer CER) GetInfos() (ci CertInfo, err error) {
 	info := NewCertInfo()
 
+	info.SetRaw(cer.Certificate.Raw)
+
 	v := cer.Certificate.Version
 	info.SetVersion(v)
 

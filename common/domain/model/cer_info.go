@@ -1,8 +1,10 @@
 package model
 
 import (
+	"bytes"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/pem"
 	"fmt"
 	"math/big"
 	"strings"
@@ -13,6 +15,7 @@ import (
 type Info map[string]interface{}
 
 type certInfoGetter interface {
+	GetRaw() string
 	GetVersion() int
 	GetSerialNumber() string
 	//signature
@@ -51,6 +54,7 @@ type certInfoGetter interface {
 }
 
 type certInfoSetter interface {
+	SetRaw([]byte)
 	SetVersion(int)
 	SetSerialNumber(*big.Int)
 	//signature
@@ -187,7 +191,7 @@ type CertInfo interface {
 }
 
 type certInfo struct {
-	raw                []byte
+	raw                string
 	version            int
 	serialNumber       string
 	signature          string
@@ -227,6 +231,18 @@ type certInfo struct {
 
 func NewCertInfo() CertInfo {
 	return &certInfo{}
+}
+
+func (info *certInfo) GetRaw() string {
+	return info.raw
+}
+func (info *certInfo) SetRaw(raw []byte) {
+	//TODO: Find a way to report errors when encoding fails.
+	var buff bytes.Buffer
+	b := pem.Block{"CERTIFICATE", map[string]string{}, raw}
+
+	pem.Encode(&buff, &b)
+	info.raw = strings.TrimSpace(buff.String())
 }
 
 func (info *certInfo) SetVersion(v int) {
