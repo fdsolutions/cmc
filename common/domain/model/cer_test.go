@@ -61,13 +61,21 @@ var _ = Describe("Cer", func() {
 						"state":             "",
 						"locality":          "",
 						"organization":      "Google Inc",
-						"organization unit": "",
-						"common name":       "Google Internet Authority G2",
-						"street address":    "",
+						"organization_unit": "",
+						"common_name":       "Google Internet Authority G2",
+						"street_address":    "",
 					},
 				}
-
 				Expect(info.GetIssuerInfo()).To(Equal(expectedInfo))
+			})
+			It("contains Validity info", func() {
+				expectedInfo := Info{
+					"validity": map[string]string{
+						"valid_from": "2014-01-29 13:27:43 +0000 UTC",
+						"valid_till": "2014-05-29 00:00:00 +0000 UTC",
+					},
+				}
+				Expect(info.GetValidityInfo()).To(Equal(expectedInfo))
 			})
 		})
 	})

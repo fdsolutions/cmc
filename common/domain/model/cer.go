@@ -42,6 +42,11 @@ func (cer CER) GetInfos() (ci CertInfo, err error) {
 	u := cer.Certificate.Issuer
 	info.SetIssuer(u)
 
+	tBefore := cer.Certificate.NotBefore
+	info.SetValidityNotBefore(tBefore)
+	tAfter := cer.Certificate.NotAfter
+	info.SetValidityNotAfter(tAfter)
+
 	ci = info
 	return
 }

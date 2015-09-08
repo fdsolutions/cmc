@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math/big"
 	"strings"
+	"time"
 )
 
 // Info holds name and value of a single field
@@ -26,11 +27,12 @@ type certInfoGetter interface {
 	GetIssuerOrganizationUnit() string
 	GetIssuerCommonName() string
 	GetIssuerStreetAddress() string
-	/*	GetValidity()
-		GetValidityNotBefore() string
-		GetValidityNotAfter() string
-		// subject info
-		GetSubject() Info
+	//validity
+	GetValidityInfo() Info
+	GetValidityNotBefore() string
+	GetValidityNotAfter() string
+	// subject info
+	/*	GetSubjectInfo() Info
 		GetSubjectCountry() string
 		GetSubjectState() string
 		GetSubjectLocality() string
@@ -64,10 +66,10 @@ type certInfoSetter interface {
 	setIssuerCommonName(string)
 	setIssuerStreetAddress([]string)
 	//validity
-	/*	SetValidityNotBefore(string)
-		SetValidityNotAfter(string)
-		// subject info
-		SetSubjectCountry(string)
+	SetValidityNotBefore(t time.Time)
+	SetValidityNotAfter(t time.Time)
+	// subject info
+	/*	SetSubjectCountry(string)
 		SetSubjectState(string)
 		SetSubjectLocality(string)
 		SetSubjectOrganization(string)
@@ -129,20 +131,20 @@ var certFieldNames = [...]string{
 	version:            "version",
 	serialNumber:       "serial number",
 	signature:          "signature",
-	signatureAlgorithm: "signature algorithm",
+	signatureAlgorithm: "signature_algorithm",
 
 	issuer:                 "issuer",
 	issuerCountry:          "country",
 	issuerState:            "state",
 	issuerLocality:         "locality",
 	issuerOrganization:     "organization",
-	issuerOrganizationUnit: "organization unit",
-	issuerCommonName:       "common name",
-	issuerStreetAddress:    "street address",
+	issuerOrganizationUnit: "organization_unit",
+	issuerCommonName:       "common_name",
+	issuerStreetAddress:    "street_address",
 
 	validity:          "validity",
-	validityNotBefore: "Valid from",
-	validityNotAfter:  "valid till",
+	validityNotBefore: "valid_from",
+	validityNotAfter:  "valid_till",
 
 	subject:                 "subject",
 	subjectCountry:          "country",
@@ -150,12 +152,12 @@ var certFieldNames = [...]string{
 	subjectLocality:         "locality",
 	subjectOrganization:     "organization",
 	subjectOrganizationUnit: "organization unit",
-	subjectCommonName:       "common name",
-	subjectEmailAdress:      "CA/email address",
+	subjectCommonName:       "common_name",
+	subjectEmailAdress:      "email_address",
 
-	publicKey:              "public key",
+	publicKey:              "public_key",
 	publicKeyInfoAlgorithm: "algorithm",
-	publicKeyInfoSize:      "size (bit)",
+	publicKeyInfoSize:      "size_in_bits",
 	publicKeyInfoModulus:   "modulus",
 
 	extensions:                     "extensions",
@@ -329,4 +331,27 @@ func (info *certInfo) GetIssuerStreetAddress() string {
 }
 func (info *certInfo) setIssuerStreetAddress(sa []string) {
 	info.issuerStreetAddress = strings.Join(sa, delim)
+}
+
+func (info *certInfo) GetValidityInfo() Info {
+	return Info{
+		certFieldNames[validity]: map[string]string{
+			certFieldNames[validityNotBefore]: info.validityNotBefore,
+			certFieldNames[validityNotAfter]:  info.validityNotAfter,
+		},
+	}
+}
+
+func (info *certInfo) GetValidityNotBefore() string {
+	return info.validityNotBefore
+}
+func (info *certInfo) SetValidityNotBefore(t time.Time) {
+	info.validityNotBefore = t.String()
+}
+
+func (info *certInfo) GetValidityNotAfter() string {
+	return info.validityNotAfter
+}
+func (info *certInfo) SetValidityNotAfter(t time.Time) {
+	info.validityNotAfter = t.String()
 }
