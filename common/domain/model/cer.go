@@ -29,25 +29,21 @@ func (cer CER) GetInfos() (ci CertInfo, err error) {
 
 	info.SetRaw(cer.Certificate.Raw)
 
-	v := cer.Certificate.Version
-	info.SetVersion(v)
+	info.SetVersion(cer.Certificate.Version)
 
-	sn := cer.Certificate.SerialNumber
-	info.SetSerialNumber(sn)
+	info.SetSerialNumber(cer.Certificate.SerialNumber)
 
-	s := cer.Certificate.Signature
-	info.SetSignature(s)
+	info.SetSignature(cer.Certificate.Signature)
 
-	sa := cer.Certificate.SignatureAlgorithm
-	info.SetSignatureAlgorithm(sa)
+	info.SetSignatureAlgorithm(cer.Certificate.SignatureAlgorithm)
 
-	u := cer.Certificate.Issuer
-	info.SetIssuer(u)
+	info.SetIssuer(cer.Certificate.Issuer)
 
-	tBefore := cer.Certificate.NotBefore
-	info.SetValidityNotBefore(tBefore)
-	tAfter := cer.Certificate.NotAfter
-	info.SetValidityNotAfter(tAfter)
+	info.SetValidityNotBefore(cer.Certificate.NotBefore)
+
+	info.SetValidityNotAfter(cer.Certificate.NotAfter)
+
+	info.SetSubjectInfo(cer.Certificate.Subject)
 
 	ci = info
 	return

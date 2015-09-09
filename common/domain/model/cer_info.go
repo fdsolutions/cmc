@@ -35,16 +35,16 @@ type certInfoGetter interface {
 	GetValidityNotBefore() string
 	GetValidityNotAfter() string
 	// subject info
-	/*	GetSubjectInfo() Info
-		GetSubjectCountry() string
-		GetSubjectState() string
-		GetSubjectLocality() string
-		GetSubjectOrganization() string
-		GetSubjectOrganizationUnit() string
-		GetSubjectCommonName() string
-		GetSubjectEmailAdress() string
-		// public key info
-		GetPublicKey() Info
+	GetSubjectInfo() Info
+	GetSubjectCountry() string
+	GetSubjectState() string
+	GetSubjectLocality() string
+	GetSubjectOrganization() string
+	GetSubjectOrganizationUnit() string
+	GetSubjectCommonName() string
+	GetSubjectStreetAddress() string
+	// public key info
+	/*	GetPublicKey() Info
 		GetPublicKeyInfoAlgorithm() string
 		GetPublicKeyInfoSize() string
 		GetPublicKeyInfoModulus() string
@@ -73,15 +73,16 @@ type certInfoSetter interface {
 	SetValidityNotBefore(t time.Time)
 	SetValidityNotAfter(t time.Time)
 	// subject info
-	/*	SetSubjectCountry(string)
-		SetSubjectState(string)
-		SetSubjectLocality(string)
-		SetSubjectOrganization(string)
-		SetSubjectOrganizationUnit(string)
-		SetSubjectCommonName(string)
-		SetSubjectEmailAdress(string)
-		// public key info
-		SetPublicKeyInfoAlgorithm(string)
+	SetSubjectInfo(pkix.Name)
+	setSubjectCountry([]string)
+	setSubjectState([]string)
+	setSubjectLocality([]string)
+	setSubjectOrganization([]string)
+	setSubjectOrganizationUnit([]string)
+	setSubjectCommonName(string)
+	setSubjectStreetAddress([]string)
+	// public key info
+	/*	SetPublicKeyInfoAlgorithm(string)
 		SetPublicKeyInfoSize(string)
 		SetPublicKeyInfoModulus(string)
 		//extensions
@@ -118,7 +119,7 @@ const (
 	subjectOrganization
 	subjectOrganizationUnit
 	subjectCommonName
-	subjectEmailAdress
+	subjectStreetAddress
 
 	publicKey
 	publicKeyInfoAlgorithm
@@ -157,7 +158,7 @@ var certFieldNames = [...]string{
 	subjectOrganization:     "organization",
 	subjectOrganizationUnit: "organization unit",
 	subjectCommonName:       "common_name",
-	subjectEmailAdress:      "email_address",
+	subjectStreetAddress:    "street_address",
 
 	publicKey:              "public_key",
 	publicKeyInfoAlgorithm: "algorithm",
@@ -217,7 +218,7 @@ type certInfo struct {
 	subjectOrganization     string
 	subjectOrganizationUnit string
 	subjectCommonName       string
-	subjectEmailAdress      string
+	subjectStreetAddress    string
 
 	// publicKey
 	publicKeyInfoAlgorithm string
@@ -301,49 +302,49 @@ func (info *certInfo) SetIssuer(n pkix.Name) {
 }
 
 func (info *certInfo) GetIssuerCountry() string {
-	return ""
+	return info.issuerCountry
 }
 func (info *certInfo) setIssuerCountry(c []string) {
 	info.issuerCountry = strings.Join(c, delim)
 }
 
 func (info *certInfo) GetIssuerState() string {
-	return ""
+	return info.issuerState
 }
 func (info *certInfo) setIssuerState(s []string) {
 	info.issuerState = strings.Join(s, delim)
 }
 
 func (info *certInfo) GetIssuerLocality() string {
-	return ""
+	return info.issuerLocality
 }
 func (info *certInfo) setIssuerLocality(l []string) {
 	info.issuerLocality = strings.Join(l, delim)
 }
 
 func (info *certInfo) GetIssuerOrganization() string {
-	return ""
+	return info.issuerOrganization
 }
 func (info *certInfo) setIssuerOrganization(o []string) {
 	info.issuerOrganization = strings.Join(o, delim)
 }
 
 func (info *certInfo) GetIssuerOrganizationUnit() string {
-	return ""
+	return info.issuerOrganizationUnit
 }
 func (info *certInfo) setIssuerOrganizationUnit(ou []string) {
 	info.issuerOrganizationUnit = strings.Join(ou, delim)
 }
 
 func (info *certInfo) GetIssuerCommonName() string {
-	return ""
+	return info.issuerCommonName
 }
 func (info *certInfo) setIssuerCommonName(cn string) {
 	info.issuerCommonName = cn
 }
 
 func (info *certInfo) GetIssuerStreetAddress() string {
-	return ""
+	return info.issuerStreetAddress
 }
 func (info *certInfo) setIssuerStreetAddress(sa []string) {
 	info.issuerStreetAddress = strings.Join(sa, delim)
@@ -370,4 +371,77 @@ func (info *certInfo) GetValidityNotAfter() string {
 }
 func (info *certInfo) SetValidityNotAfter(t time.Time) {
 	info.validityNotAfter = t.String()
+}
+
+func (info *certInfo) GetSubjectInfo() Info {
+	return Info{
+		certFieldNames[subject]: map[string]string{
+			certFieldNames[subjectCountry]:          info.subjectCountry,
+			certFieldNames[subjectState]:            info.subjectState,
+			certFieldNames[subjectLocality]:         info.subjectLocality,
+			certFieldNames[subjectOrganization]:     info.subjectOrganization,
+			certFieldNames[subjectOrganizationUnit]: info.subjectOrganizationUnit,
+			certFieldNames[subjectCommonName]:       info.subjectCommonName,
+			certFieldNames[subjectStreetAddress]:    info.subjectStreetAddress,
+		},
+	}
+}
+
+func (info *certInfo) SetSubjectInfo(sj pkix.Name) {
+	info.setSubjectCountry(sj.Country)
+	info.setSubjectState(sj.Province)
+	info.setSubjectLocality(sj.Locality)
+	info.setSubjectOrganization(sj.Organization)
+	info.setSubjectOrganizationUnit(sj.OrganizationalUnit)
+	info.setSubjectCommonName(sj.CommonName)
+	info.setSubjectStreetAddress(sj.StreetAddress)
+}
+
+func (info *certInfo) GetSubjectCountry() string {
+	return info.subjectCountry
+}
+func (info *certInfo) setSubjectCountry(c []string) {
+	info.subjectCountry = strings.Join(c, delim)
+}
+
+func (info *certInfo) GetSubjectState() string {
+	return info.subjectState
+}
+func (info *certInfo) setSubjectState(s []string) {
+	info.subjectCountry = strings.Join(s, delim)
+}
+
+func (info *certInfo) GetSubjectLocality() string {
+	return info.subjectLocality
+}
+func (info *certInfo) setSubjectLocality(l []string) {
+	info.subjectLocality = strings.Join(l, delim)
+}
+
+func (info *certInfo) GetSubjectOrganization() string {
+	return info.subjectOrganization
+}
+func (info *certInfo) setSubjectOrganization(o []string) {
+	info.subjectOrganization = strings.Join(o, delim)
+}
+
+func (info *certInfo) GetSubjectOrganizationUnit() string {
+	return info.subjectOrganizationUnit
+}
+func (info *certInfo) setSubjectOrganizationUnit(ou []string) {
+	info.subjectOrganizationUnit = strings.Join(ou, delim)
+}
+
+func (info *certInfo) GetSubjectCommonName() string {
+	return info.subjectCommonName
+}
+func (info *certInfo) setSubjectCommonName(cn string) {
+	info.subjectCommonName = cn
+}
+
+func (info *certInfo) GetSubjectStreetAddress() string {
+	return info.subjectStreetAddress
+}
+func (info *certInfo) setSubjectStreetAddress(sa []string) {
+	info.subjectStreetAddress = strings.Join(sa, delim)
 }

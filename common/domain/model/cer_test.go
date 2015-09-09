@@ -83,6 +83,20 @@ var _ = Describe("Cer", func() {
 				}
 				Expect(info.GetValidityInfo()).To(Equal(expectedInfo))
 			})
+			It("contains subject info", func() {
+				expectedInfo := Info{
+					"subject": map[string]string{
+						"street_address":    "",
+						"country":           "California",
+						"state":             "",
+						"locality":          "Mountain View",
+						"organization":      "Google Inc",
+						"organization unit": "",
+						"common_name":       "mail.google.com",
+					},
+				}
+				Expect(info.GetSubjectInfo()).To(Equal(expectedInfo))
+			})
 		})
 	})
 })
