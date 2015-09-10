@@ -97,6 +97,17 @@ var _ = Describe("Cer", func() {
 				}
 				Expect(info.GetSubjectInfo()).To(Equal(expectedInfo))
 			})
+			It("contains public info", func() {
+				expectedInfo := Info{
+					"public_key": map[string]string{
+						"algorithm":    "",
+						"key_usage":    "",
+						"size_in_bits": "",
+						"modulus":      "",
+					},
+				}
+				Expect(info.GetPublicKeyInfo()).To(Equal(expectedInfo))
+			})
 		})
 	})
 })

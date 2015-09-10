@@ -2,11 +2,15 @@ package model
 
 import (
 	"bytes"
+	"crypto/dsa"
+	"crypto/ecdsa"
+	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
 	"fmt"
 	"math/big"
+	"net"
 	"strings"
 	"time"
 )
@@ -44,13 +48,34 @@ type certInfoGetter interface {
 	GetSubjectCommonName() string
 	GetSubjectStreetAddress() string
 	// public key info
-	/*	GetPublicKey() Info
-		GetPublicKeyInfoAlgorithm() string
-		GetPublicKeyInfoSize() string
-		GetPublicKeyInfoModulus() string
-		GetExtensions() Info
+	GetPublicKeyInfo() Info
+	GetPublicKeyAlgorithm() string
+	GetPublicKeyUsage() string
+	GetPublicKeySize() int
+	GetPublicKeyModulus() string
+
+	/*	GetExtensions() Info
 		GetExtensionAutorityKeyIdentifier() string
 		GetExtensionIssuerAltNames() string*/
+}
+
+type SubjectAltNamesValuesExtension struct {
+	DNSNames       []string
+	EmailAddresses []string
+	IPAddresses    []net.IP
+}
+
+func (ext SubjectAltNamesValuesExtension) Values() Info {
+	ipList := make([]string, len(ext.IPAddresses))
+	for _, ip := range ext.IPAddresses {
+		ipList = append(ipList, ip.String())
+	}
+
+	return Info{
+		certFieldNames[altDNSNames]:       strings.Join(ext.DNSNames, delim),
+		certFieldNames[altEmailAddresses]: strings.Join(ext.EmailAddresses, delim),
+		certFieldNames[altIPAddresses]:    strings.Join(ipList, delim),
+	}
 }
 
 type certInfoSetter interface {
@@ -82,12 +107,14 @@ type certInfoSetter interface {
 	setSubjectCommonName(string)
 	setSubjectStreetAddress([]string)
 	// public key info
-	/*	SetPublicKeyInfoAlgorithm(string)
-		SetPublicKeyInfoSize(string)
-		SetPublicKeyInfoModulus(string)
-		//extensions
-		SetExtensionAutorityKeyIdentifier(string)
-		SetExtensionIssuerAltNames(string)*/
+	SetPublicKeyAlgorithm(x509.PublicKeyAlgorithm)
+	SetPublicKeyUsage(x509.KeyUsage)
+	SetPublicKeySizeAndModulus(interface{})
+	SetPublicKeySize(interface{})
+	SetPublicKeyModulus(interface{})
+	//extensions
+	/*SetExtensionAutorityKeyIdentifier(string)
+	SetExtensionIssuerAltNames(string)*/
 }
 
 const (
@@ -122,13 +149,18 @@ const (
 	subjectStreetAddress
 
 	publicKey
-	publicKeyInfoAlgorithm
-	publicKeyInfoSize
-	publicKeyInfoModulus
+	publicKeyAlgorithm
+	publicKeyUsage
+	publicKeySize
+	publicKeyModulus
 
 	extensions
 	extensionAutorityKeyIdentifier
-	extensionIssuerAltNames
+	extensionSubjectAltNames
+	altDNSNames
+	altEmailAddresses
+	altIPAddresses
+
 	lastField
 )
 
@@ -160,14 +192,18 @@ var certFieldNames = [...]string{
 	subjectCommonName:       "common_name",
 	subjectStreetAddress:    "street_address",
 
-	publicKey:              "public_key",
-	publicKeyInfoAlgorithm: "algorithm",
-	publicKeyInfoSize:      "size_in_bits",
-	publicKeyInfoModulus:   "modulus",
+	publicKey:          "public_key",
+	publicKeyAlgorithm: "algorithm",
+	publicKeyUsage:     "key_usage",
+	publicKeySize:      "size_in_bits",
+	publicKeyModulus:   "modulus",
 
 	extensions:                     "extensions",
-	extensionAutorityKeyIdentifier: "authority key identifier",
-	extensionIssuerAltNames:        "Subject Alternative Name (SAN)",
+	extensionAutorityKeyIdentifier: "authority_key_id",
+	extensionSubjectAltNames:       "san",
+	altDNSNames:                    "alt_dns_names",
+	altEmailAddresses:              "alt_email_addresses",
+	altIPAddresses:                 "alt_ip_addresses",
 }
 
 var signatureAlgorithmNames = [...]string{
@@ -185,6 +221,20 @@ var signatureAlgorithmNames = [...]string{
 	x509.ECDSAWithSHA384:           "ECDSA With SHA384",
 	x509.ECDSAWithSHA512:           "ECDSA With SHA512",
 }
+
+var keyUsageNames = [...]string{
+	x509.KeyUsageDigitalSignature:  "digital signature",
+	x509.KeyUsageContentCommitment: "content commitment",
+	x509.KeyUsageKeyEncipherment:   "encipherment",
+	x509.KeyUsageDataEncipherment:  "data encipherment",
+	x509.KeyUsageKeyAgreement:      "agreement",
+	x509.KeyUsageCertSign:          "cert sign",
+	x509.KeyUsageCRLSign:           "CRL sign",
+	x509.KeyUsageEncipherOnly:      "encipher only",
+	x509.KeyUsageDecipherOnly:      "decipher only",
+}
+
+const unknownKeyUsage = "unknown"
 
 type CertInfo interface {
 	certInfoGetter
@@ -221,9 +271,10 @@ type certInfo struct {
 	subjectStreetAddress    string
 
 	// publicKey
-	publicKeyInfoAlgorithm string
-	publicKeyInfoSize      string
-	publicKeyInfoModulus   string
+	publicKeyAlgorithm x509.PublicKeyAlgorithm
+	publicKeyUsage     string
+	publicKeySize      int
+	publicKeyModulus   string
 
 	// extensions
 	extensionAutorityKeyIdentifier string
@@ -240,7 +291,11 @@ func (info *certInfo) GetRaw() string {
 func (info *certInfo) SetRaw(raw []byte) {
 	//TODO: Find a way to report errors when encoding fails.
 	var buff bytes.Buffer
-	b := pem.Block{"CERTIFICATE", map[string]string{}, raw}
+	b := pem.Block{
+		Type:    "CERTIFICATE",
+		Headers: map[string]string{},
+		Bytes:   raw,
+	}
 
 	pem.Encode(&buff, &b)
 	info.raw = strings.TrimSpace(buff.String())
@@ -444,4 +499,97 @@ func (info *certInfo) GetSubjectStreetAddress() string {
 }
 func (info *certInfo) setSubjectStreetAddress(sa []string) {
 	info.subjectStreetAddress = strings.Join(sa, delim)
+}
+
+func (info *certInfo) GetPublicKeyInfo() Info {
+	return Info{
+		certFieldNames[publicKey]: map[string]interface{}{
+			certFieldNames[publicKeyAlgorithm]: info.GetPublicKeyAlgorithm(),
+			certFieldNames[publicKeySize]:      info.GetPublicKeySize(),
+			certFieldNames[publicKeyUsage]:     info.GetPublicKeyUsage(),
+			certFieldNames[publicKeyModulus]:   info.GetPublicKeyModulus(),
+		},
+	}
+}
+
+func (info *certInfo) GetPublicKeyAlgorithm() string {
+	var alg string
+	switch info.publicKeyAlgorithm {
+	case x509.RSA:
+		alg = "RSA"
+	case x509.DSA:
+		alg = "DSA"
+	case x509.ECDSA:
+		alg = "ECDSA"
+	default:
+		alg = "unknown public key algorithm"
+	}
+	return alg
+}
+
+func (info *certInfo) SetPublicKeyAlgorithm(pka x509.PublicKeyAlgorithm) {
+	info.publicKeyAlgorithm = pka
+}
+
+func (info *certInfo) GetPublicKeyUsage() string {
+	return info.publicKeyUsage
+}
+func (info *certInfo) SetPublicKeyUsage(ku x509.KeyUsage) {
+	var name string
+
+	switch ku {
+	case x509.KeyUsageDigitalSignature:
+		name = keyUsageNames[x509.KeyUsageDigitalSignature]
+	case x509.KeyUsageContentCommitment:
+		name = keyUsageNames[x509.KeyUsageContentCommitment]
+	case x509.KeyUsageKeyEncipherment:
+		name = keyUsageNames[x509.KeyUsageKeyEncipherment]
+	case x509.KeyUsageDataEncipherment:
+		name = keyUsageNames[x509.KeyUsageDataEncipherment]
+	case x509.KeyUsageKeyAgreement:
+		name = keyUsageNames[x509.KeyUsageKeyAgreement]
+	case x509.KeyUsageCertSign:
+		name = keyUsageNames[x509.KeyUsageCertSign]
+	case x509.KeyUsageCRLSign:
+		name = keyUsageNames[x509.KeyUsageCRLSign]
+	case x509.KeyUsageEncipherOnly:
+		name = keyUsageNames[x509.KeyUsageEncipherOnly]
+	case x509.KeyUsageDecipherOnly:
+		name = keyUsageNames[x509.KeyUsageDecipherOnly]
+	default:
+		name = unknownKeyUsage
+	}
+
+	info.publicKeyUsage = name
+}
+
+func (info *certInfo) SetPublicKeySizeAndModulus(k interface{}) {
+	info.SetPublicKeySize(k)
+	info.SetPublicKeyModulus(k)
+}
+
+func (info *certInfo) GetPublicKeySize() int {
+	return info.publicKeySize
+}
+func (info *certInfo) SetPublicKeySize(k interface{}) {
+	var size int
+	switch key := k.(type) {
+	case *rsa.PublicKey:
+		size = (*key).N.BitLen()
+	case *dsa.PublicKey:
+		size = (*key).Y.BitLen()
+	case *ecdsa.PublicKey:
+		curveParams := key.Curve.Params()
+		size = curveParams.BitSize
+	default:
+		fmt.Printf("---- No")
+	}
+	info.publicKeySize = size
+}
+
+func (info *certInfo) GetPublicKeyModulus() string {
+	return info.publicKeyModulus
+}
+func (info *certInfo) SetPublicKeyModulus(k interface{}) {
+
 }

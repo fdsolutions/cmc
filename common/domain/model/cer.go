@@ -45,6 +45,10 @@ func (cer CER) GetInfos() (ci CertInfo, err error) {
 
 	info.SetSubjectInfo(cer.Certificate.Subject)
 
+	info.SetPublicKeyAlgorithm(cer.Certificate.PublicKeyAlgorithm)
+	info.SetPublicKeyUsage(cer.Certificate.KeyUsage)
+	info.SetPublicKeySizeAndModulus(cer.Certificate.PublicKey)
+
 	ci = info
 	return
 }
