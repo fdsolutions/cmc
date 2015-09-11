@@ -49,6 +49,14 @@ func (cer CER) GetInfos() (ci CertInfo, err error) {
 	info.SetPublicKeyUsage(cer.Certificate.KeyUsage)
 	info.SetPublicKeySizeAndModulus(cer.Certificate.PublicKey)
 
+	info.SetExtensionAutorityKeyIdentifier(cer.Certificate.AuthorityKeyId)
+	sanExt := SubjectAltNamesValuesExtension{
+		cer.Certificate.DNSNames,
+		cer.Certificate.EmailAddresses,
+		cer.Certificate.IPAddresses,
+	}
+	info.SetExtensionAltNames(sanExt)
+
 	ci = info
 	return
 }

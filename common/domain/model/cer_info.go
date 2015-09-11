@@ -15,6 +15,46 @@ import (
 	"time"
 )
 
+const delim string = ", "
+const (
+	firstField = iota
+	version
+	serialNumber
+	signature
+	signatureAlgorithm
+	issuer
+	issuerCountry
+	issuerState
+	issuerLocality
+	issuerOrganization
+	issuerOrganizationUnit
+	issuerCommonName
+	issuerStreetAddress
+	validity
+	validityNotBefore
+	validityNotAfter
+	subject
+	subjectCountry
+	subjectState
+	subjectLocality
+	subjectOrganization
+	subjectOrganizationUnit
+	subjectCommonName
+	subjectStreetAddress
+	publicKey
+	publicKeyAlgorithm
+	publicKeyUsage
+	publicKeySize
+	publicKeyModulus
+	extensions
+	extensionAutorityKeyIdentifier
+	extensionAltNames
+	altDNSNames
+	altEmailAddresses
+	altIPAddresses
+	lastField
+)
+
 // Info holds name and value of a single field
 type Info map[string]interface{}
 
@@ -53,10 +93,10 @@ type certInfoGetter interface {
 	GetPublicKeyUsage() string
 	GetPublicKeySize() int
 	GetPublicKeyModulus() string
-
-	/*	GetExtensions() Info
-		GetExtensionAutorityKeyIdentifier() string
-		GetExtensionIssuerAltNames() string*/
+	// Extensions
+	GetExtensionsInfo() Info
+	GetExtensionAutorityKeyIdentifier() string
+	GetExtensionAltNames() Info
 }
 
 type SubjectAltNamesValuesExtension struct {
@@ -113,56 +153,9 @@ type certInfoSetter interface {
 	SetPublicKeySize(interface{})
 	SetPublicKeyModulus(interface{})
 	//extensions
-	/*SetExtensionAutorityKeyIdentifier(string)
-	SetExtensionIssuerAltNames(string)*/
+	SetExtensionAutorityKeyIdentifier([]byte)
+	SetExtensionAltNames(SubjectAltNamesValuesExtension)
 }
-
-const (
-	delim string = ", "
-
-	firstField int = iota
-	version
-	serialNumber
-	signature
-	signatureAlgorithm
-
-	issuer
-	issuerCountry
-	issuerState
-	issuerLocality
-	issuerOrganization
-	issuerOrganizationUnit
-	issuerCommonName
-	issuerStreetAddress
-
-	validity
-	validityNotBefore
-	validityNotAfter
-
-	subject
-	subjectCountry
-	subjectState
-	subjectLocality
-	subjectOrganization
-	subjectOrganizationUnit
-	subjectCommonName
-	subjectStreetAddress
-
-	publicKey
-	publicKeyAlgorithm
-	publicKeyUsage
-	publicKeySize
-	publicKeyModulus
-
-	extensions
-	extensionAutorityKeyIdentifier
-	extensionSubjectAltNames
-	altDNSNames
-	altEmailAddresses
-	altIPAddresses
-
-	lastField
-)
 
 var certFieldNames = [...]string{
 	version:            "version",
@@ -200,7 +193,7 @@ var certFieldNames = [...]string{
 
 	extensions:                     "extensions",
 	extensionAutorityKeyIdentifier: "authority_key_id",
-	extensionSubjectAltNames:       "san",
+	extensionAltNames:              "san",
 	altDNSNames:                    "alt_dns_names",
 	altEmailAddresses:              "alt_email_addresses",
 	altIPAddresses:                 "alt_ip_addresses",
@@ -278,7 +271,7 @@ type certInfo struct {
 
 	// extensions
 	extensionAutorityKeyIdentifier string
-	extensionIssuerAltNames        string
+	extensionAltNames              Info
 }
 
 func NewCertInfo() CertInfo {
@@ -336,7 +329,7 @@ func (info *certInfo) GetSignatureAlgorithm() string {
 
 func (info *certInfo) GetIssuerInfo() Info {
 	return Info{
-		certFieldNames[issuer]: map[string]string{
+		certFieldNames[issuer]: Info{
 			certFieldNames[issuerState]:            info.issuerState,
 			certFieldNames[issuerLocality]:         info.issuerLocality,
 			certFieldNames[issuerOrganization]:     info.issuerOrganization,
@@ -407,7 +400,7 @@ func (info *certInfo) setIssuerStreetAddress(sa []string) {
 
 func (info *certInfo) GetValidityInfo() Info {
 	return Info{
-		certFieldNames[validity]: map[string]string{
+		certFieldNames[validity]: Info{
 			certFieldNames[validityNotBefore]: info.validityNotBefore,
 			certFieldNames[validityNotAfter]:  info.validityNotAfter,
 		},
@@ -430,7 +423,7 @@ func (info *certInfo) SetValidityNotAfter(t time.Time) {
 
 func (info *certInfo) GetSubjectInfo() Info {
 	return Info{
-		certFieldNames[subject]: map[string]string{
+		certFieldNames[subject]: Info{
 			certFieldNames[subjectCountry]:          info.subjectCountry,
 			certFieldNames[subjectState]:            info.subjectState,
 			certFieldNames[subjectLocality]:         info.subjectLocality,
@@ -503,7 +496,7 @@ func (info *certInfo) setSubjectStreetAddress(sa []string) {
 
 func (info *certInfo) GetPublicKeyInfo() Info {
 	return Info{
-		certFieldNames[publicKey]: map[string]interface{}{
+		certFieldNames[publicKey]: Info{
 			certFieldNames[publicKeyAlgorithm]: info.GetPublicKeyAlgorithm(),
 			certFieldNames[publicKeySize]:      info.GetPublicKeySize(),
 			certFieldNames[publicKeyUsage]:     info.GetPublicKeyUsage(),
@@ -600,4 +593,27 @@ func (info *certInfo) SetPublicKeyModulus(k interface{}) {
 		// Not yet
 	}
 	info.publicKeyModulus = modulus
+}
+
+func (info *certInfo) GetExtensionsInfo() Info {
+	return Info{
+		certFieldNames[extensions]: Info{
+			certFieldNames[extensionAutorityKeyIdentifier]: info.GetExtensionAutorityKeyIdentifier(),
+			certFieldNames[extensionAltNames]:              info.GetExtensionAltNames(),
+		},
+	}
+}
+
+func (info *certInfo) GetExtensionAutorityKeyIdentifier() string {
+	return info.extensionAutorityKeyIdentifier
+}
+func (info *certInfo) SetExtensionAutorityKeyIdentifier(id []byte) {
+	info.extensionAutorityKeyIdentifier = fmt.Sprintf("%x", id)
+}
+
+func (info *certInfo) GetExtensionAltNames() Info {
+	return info.extensionAltNames
+}
+func (info *certInfo) SetExtensionAltNames(ext SubjectAltNamesValuesExtension) {
+	info.extensionAltNames = ext.Values()
 }

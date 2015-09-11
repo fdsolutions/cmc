@@ -63,7 +63,7 @@ var _ = Describe("Cer", func() {
 			})
 			It("contains Issuer info", func() {
 				expectedInfo := Info{
-					"issuer": map[string]string{
+					"issuer": Info{
 						"state":             "",
 						"locality":          "",
 						"organization":      "Google Inc",
@@ -76,7 +76,7 @@ var _ = Describe("Cer", func() {
 			})
 			It("contains Validity info", func() {
 				expectedInfo := Info{
-					"validity": map[string]string{
+					"validity": Info{
 						"valid_from": "2014-01-29 13:27:43 +0000 UTC",
 						"valid_till": "2014-05-29 00:00:00 +0000 UTC",
 					},
@@ -85,7 +85,7 @@ var _ = Describe("Cer", func() {
 			})
 			It("contains subject info", func() {
 				expectedInfo := Info{
-					"subject": map[string]string{
+					"subject": Info{
 						"street_address":    "",
 						"country":           "California",
 						"state":             "",
@@ -99,7 +99,7 @@ var _ = Describe("Cer", func() {
 			})
 			It("contains public info", func() {
 				expectedInfo := Info{
-					"public_key": map[string]interface{}{
+					"public_key": Info{
 						"algorithm":    "ECDSA",
 						"key_usage":    "digital signature",
 						"size_in_bits": 256,
@@ -107,6 +107,19 @@ var _ = Describe("Cer", func() {
 					},
 				}
 				Expect(info.GetPublicKeyInfo()).To(Equal(expectedInfo))
+			})
+			It("contains extensions info", func() {
+				expectedInfo := Info{
+					"extensions": Info{
+						"authority_key_id": "4add06161bbcf668b576f581b6bb621aba5a812f",
+						"san": Info{
+							"alt_ip_addresses":    "",
+							"alt_dns_names":       "mail.google.com",
+							"alt_email_addresses": "",
+						},
+					},
+				}
+				Expect(info.GetExtensionsInfo()).To(Equal(expectedInfo))
 			})
 		})
 	})
