@@ -581,8 +581,6 @@ func (info *certInfo) SetPublicKeySize(k interface{}) {
 	case *ecdsa.PublicKey:
 		curveParams := key.Curve.Params()
 		size = curveParams.BitSize
-	default:
-		fmt.Printf("---- No")
 	}
 	info.publicKeySize = size
 }
@@ -591,5 +589,15 @@ func (info *certInfo) GetPublicKeyModulus() string {
 	return info.publicKeyModulus
 }
 func (info *certInfo) SetPublicKeyModulus(k interface{}) {
-
+	//TODO: Find a way to compute the modulus for DSA and ECDSA Algorithm
+	var modulus string
+	switch key := k.(type) {
+	case *rsa.PublicKey:
+		modulus = (*key).N.String()
+	case *dsa.PublicKey:
+		// Not yet
+	case *ecdsa.PublicKey:
+		// Not yet
+	}
+	info.publicKeyModulus = modulus
 }

@@ -99,10 +99,10 @@ var _ = Describe("Cer", func() {
 			})
 			It("contains public info", func() {
 				expectedInfo := Info{
-					"public_key": map[string]string{
-						"algorithm":    "",
-						"key_usage":    "",
-						"size_in_bits": "",
+					"public_key": map[string]interface{}{
+						"algorithm":    "ECDSA",
+						"key_usage":    "digital signature",
+						"size_in_bits": 256,
 						"modulus":      "",
 					},
 				}
